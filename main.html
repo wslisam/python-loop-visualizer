@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Loop Visualizer (Step Input, 0 Blocked)</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideIn {
+            0% { transform: translateX(-20px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .animate-slide {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        .code-font { font-family: 'Courier New', Courier, monospace; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+
+    <div class="w-full max-w-4xl mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Python Loop Visualizer 
+                <!-- <div class="text-gray-600 text-sm"> Created By Sam Li </div> -->
+        </h1>  
+            <p class="text-gray-600">
+                For understanding <code class="bg-gray-200 px-1 rounded text-sm">for</code> loops and 
+                <code class="bg-gray-200 px-1 rounded text-sm">range()</code>.
+            </p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="switchTab('range')" id="btn-range" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md">
+                <i data-lucide="layers" width="18"></i> Range Function
+            </button>
+            <button onclick="switchTab('table')" id="btn-table" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200">
+                <i data-lucide="calculator" width="18"></i> Multiplication Table
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-2xl p-1 shadow-xl border border-gray-200">
+            <div class="p-6">
+                
+                <!-- SECTION 1: RANGE EXPLORER -->
+                <div id="view-range" class="space-y-6">
+                    <!-- Code Editor UI -->
+                    <div class="bg-slate-900 text-slate-200 p-6 rounded-xl code-font text-lg shadow-inner">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-purple-400">for</span>
+                            <span class="text-yellow-300">i</span>
+                            <span class="text-purple-400">in</span>
+                            <span class="text-blue-400">range</span>
+                            <span>(</span>
+                            
+                            <!-- Start Input -->
+                            <div class="flex flex-col items-center relative group">
+                                <span class="text-xs text-gray-500 absolute -top-4">Start</span>
+                                <input type="number" id="range-start" value="0" class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
+                            </div>
+
+                            <span>,</span>
+
+                            <!-- Stop Input -->
+                            <div class="flex flex-col items-center relative group">
+                                <span class="text-xs text-gray-500 absolute -top-4">Stop</span>
+                                <input type="number" id="range-stop" value="10" class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
+                            </div>
+
+                            <span>,</span>
+
+                            <!-- Step Input (0 not allowed) -->
+                            <div class="flex flex-col items-center relative group">
+                                <span class="text-xs text-gray-500 absolute -top-4">Step</span>
+                                <input
+                                    type="number"
+                                    id="range-step"
+                                    value="1"
+                                    min="-100"
+                                    max="100"
+                                    class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none"
+                                    oninput="handleStepInput(this)"
+                                >
+                            </div>
+
+                            <span>)</span>
+                            <span>:</span>
+                        </div>
+                        <div class="pl-8 mt-2 flex items-center gap-2">
+                            <span class="text-blue-300">print</span>(<span class="text-yellow-300">i</span>)
+                            <span id="current-print-val" class="text-green-400 text-sm ml-4 hidden">
+                                # Currently printing: <span id="val-display"></span>
+                            </span>
+                        </div>
+
+                        <!-- Python RANGE REMINDER -->
+                        <div class="mt-4 text-xs md:text-sm text-slate-300 bg-slate-800/60 border border-slate-700 rounded-lg p-3 leading-relaxed">
+                            <p class="font-semibold mb-1">Python <code class="bg-slate-700 px-1 rounded">range()</code> reminder:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <!-- <li><code>range(stop)</code> → counts from <code>0</code> to <code>stop - 1</code>, step defaults to <code>1</code>.</li> -->
+                                <li><code>range(start, stop)</code> → uses the default step of <code>1</code>. The step is <strong>optional</strong>.</li>
+                                <li><code>range(start, stop, step)</code> → lets you choose a custom step (positive or negative, but <strong>not 0</strong>).</li>
+                                <li>In real Python, <code>step = 0</code> raises: <code>ValueError: range() arg 3 must not be zero</code>.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Inline warning for bad step -->
+                        <div id="range-warning" class="mt-3 text-xs md:text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 hidden">
+                            Step cannot be <code>0</code>. In Python this would raise
+                            <code>ValueError: range() arg 3 must not be zero</code>.  
+                            The step has been reset to <code>1</code>. You may also use values like <code>2</code> or input <code>-1</code> directly.
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <button onclick="runRangeSimulation()" id="btn-run-range" class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl transition-all">
+                            <i data-lucide="play" width="20"></i> Run Code
+                        </button>
+                        <button onclick="resetRange()" class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-all">
+                            <i data-lucide="rotate-ccw" width="20"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Output Console -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm min-h-[160px]">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Output Console</h3>
+                        <div id="range-output" class="flex flex-wrap gap-3">
+                            <!-- Bubbles will appear here -->
+                        </div>
+                        <div class="mt-6 text-sm text-gray-500 border-t pt-4">
+                            <strong>Note:</strong>
+                            <span id="note-text">
+                                Notice how it starts at <strong id="note-start">0</strong>,
+                                jumps by <strong id="note-step">1</strong>, and stops
+                                <em>before</em> it reaches <strong id="note-stop">10</strong>.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: MULTIPLICATION TABLE (same as before) -->
+                <div id="view-table" class="hidden space-y-6">
+                    <div class="flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <div class="flex items-center gap-4">
+                            <label class="font-bold text-gray-700">Multiplication Table for:</label>
+                            <input type="number" id="table-num" value="7" oninput="updateTableCode()" class="w-16 p-2 text-xl font-bold text-center border-2 border-blue-300 rounded-lg focus:border-blue-600 outline-none">
+                        </div>
+                        <button onclick="runTableSimulation()" id="btn-run-table" class="px-6 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                            Generate Table
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Code View -->
+                        <div class="bg-slate-900 text-slate-200 p-6 rounded-xl code-font text-sm shadow-inner h-fit">
+                            <p class="text-gray-500 mb-2"># Python Code</p>
+                            <p>num = <span class="text-blue-400" id="code-num-display">7</span></p>
+                            <p><span class="text-purple-400">for</span> <span class="text-yellow-300">i</span> <span class="text-purple-400">in</span> <span class="text-blue-400">range</span>(1, 11):</p>
+                            <p class="pl-4 text-gray-400"># Calculate result</p>
+                            <p class="pl-4">answer = num * <span class="text-yellow-300">i</span></p>
+                            <p class="pl-4"><span class="text-blue-300">print</span>(f"<span class="text-blue-400">{num}</span> x <span class="text-yellow-300">{i}</span> = <span class="text-green-400">{answer}</span>")</p>
+                        </div>
+
+                        <!-- Visual Output -->
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm min-h-[300px] flex flex-col gap-2">
+                            <h3 class="font-bold text-gray-700 border-b pb-2">Output</h3>
+                            <div id="table-output" class="flex flex-col gap-2">
+                                <!-- Rows will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- Tab Switching Logic ---
+        function switchTab(tab) {
+            const rangeView = document.getElementById('view-range');
+            const tableView = document.getElementById('view-table');
+            const btnRange = document.getElementById('btn-range');
+            const btnTable = document.getElementById('btn-table');
+
+            if (tab === 'range') {
+                rangeView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+                
+                btnRange.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md";
+                btnTable.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200";
+            } else {
+                rangeView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+
+                btnTable.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md";
+                btnRange.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200";
+            }
+        }
+
+        // --- Step Input Handler (blocks 0) ---
+        function handleStepInput(inputEl) {
+            const warningBox = document.getElementById('range-warning');
+            let val = parseInt(inputEl.value);
+
+            if (isNaN(val)) {
+                // Let it be empty, hide warning
+                if (warningBox) warningBox.classList.add('hidden');
+                return;
+            }
+
+            if (val === 0) {
+                // auto-correct to 1 and show inline explanation
+                inputEl.value = 1;
+                if (warningBox) warningBox.classList.remove('hidden');
+            } else {
+                if (warningBox) warningBox.classList.add('hidden');
+            }
+        }
+
+        // --- Range Explorer Logic ---
+        let rangeInterval;
+
+        function runRangeSimulation() {
+            const start = parseInt(document.getElementById('range-start').value) || 0;
+            const stop = parseInt(document.getElementById('range-stop').value) || 0;
+            const rawStep = document.getElementById('range-step').value;
+            let step = parseInt(rawStep);
+
+            const outputContainer = document.getElementById('range-output');
+            const btn = document.getElementById('btn-run-range');
+            const currentValDisplay = document.getElementById('current-print-val');
+            const valSpan = document.getElementById('val-display');
+            const noteStart = document.getElementById('note-start');
+            const noteStop = document.getElementById('note-stop');
+            const noteStep = document.getElementById('note-step');
+            const noteText = document.getElementById('note-text');
+            const warningBox = document.getElementById('range-warning');
+
+            // If empty or NaN, fall back to default step = 1 (mimic optional step)
+            if (rawStep === "" || isNaN(step)) {
+                step = 1;
+                document.getElementById('range-step').value = 1;
+            }
+
+            // Block step = 0 just in case
+            if (step === 0) {
+                step = 1;
+                document.getElementById('range-step').value = 1;
+                if (warningBox) warningBox.classList.remove('hidden');
+            }
+
+            // Reset UI
+            clearInterval(rangeInterval);
+            outputContainer.innerHTML = '';
+            btn.disabled = true;
+            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.innerText = "Running...";
+            
+            // Update Teacher Note Values
+            noteStart.innerText = start;
+            noteStop.innerText = stop;
+            noteStep.innerText = step;
+
+            if (step > 0) {
+                noteText.innerHTML = `
+                    Notice how it starts at <strong id="note-start">${start}</strong>,
+                    jumps up by <strong id="note-step">${step}</strong>, and stops
+                    <em>before</em> it reaches <strong id="note-stop">${stop}</strong>.
+                `;
+            } else {
+                noteText.innerHTML = `
+                    Notice how it starts at <strong id="note-start">${start}</strong>,
+                    goes down by <strong id="note-step">${step}</strong>, and stops
+                    <em>before</em> it goes past <strong id="note-stop">${stop}</strong>.
+                `;
+            }
+
+            // Generate Sequence (Python-like behavior)
+            let sequence = [];
+            let current = start;
+
+            if (step > 0) {
+                while (current < stop) {
+                    sequence.push(current);
+                    current += step;
+                }
+            } else {
+                while (current > stop) {
+                    sequence.push(current);
+                    current += step;
+                }
+            }
+
+            // Animation Loop
+            let i = 0;
+            currentValDisplay.classList.remove('hidden');
+
+            if (sequence.length === 0) {
+                currentValDisplay.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
+                lucide.createIcons();
+                return;
+            }
+
+            rangeInterval = setInterval(() => {
+                if (i >= sequence.length) {
+                    clearInterval(rangeInterval);
+                    btn.disabled = false;
+                    btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
+                    lucide.createIcons();
+                    currentValDisplay.classList.add('hidden');
+                    return;
+                }
+
+                const num = sequence[i];
+                valSpan.innerText = num;
+
+                const bubble = document.createElement('div');
+                bubble.className = "w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-800 font-bold rounded-full border-2 border-blue-200 shadow-sm animate-pop";
+                bubble.innerText = num;
+                outputContainer.appendChild(bubble);
+
+                i++;
+            }, 800);
+        }
+
+        function resetRange() {
+            clearInterval(rangeInterval);
+            document.getElementById('range-output').innerHTML = '';
+            document.getElementById('current-print-val').classList.add('hidden');
+            
+            const btn = document.getElementById('btn-run-range');
+            btn.disabled = false;
+            btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
+            lucide.createIcons();
+
+            const warningBox = document.getElementById('range-warning');
+            if (warningBox) warningBox.classList.add('hidden');
+        }
+
+        // --- Multiplication Table Logic ---
+        let tableInterval;
+
+        function updateTableCode() {
+            const num = document.getElementById('table-num').value;
+            document.getElementById('code-num-display').innerText = num;
+        }
+
+        function runTableSimulation() {
+            const baseNum = parseInt(document.getElementById('table-num').value) || 7;
+            const outputContainer = document.getElementById('table-output');
+            const btn = document.getElementById('btn-run-table');
+
+            clearInterval(tableInterval);
+            outputContainer.innerHTML = '';
+            btn.disabled = true;
+            btn.classList.add('bg-gray-400');
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btn.innerText = "Generating...";
+
+            let i = 1;
+
+            tableInterval = setInterval(() => {
+                if (i > 10) {
+                    clearInterval(tableInterval);
+                    btn.disabled = false;
+                    btn.classList.remove('bg-gray-400');
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    btn.innerText = "Generate Table";
+                    return;
+                }
+
+                const result = baseNum * i;
+                
+                const row = document.createElement('div');
+                row.className = "flex items-center gap-3 text-lg font-mono p-2 bg-gray-50 rounded animate-slide";
+                row.innerHTML = `
+                    <span class="font-bold text-blue-600">${baseNum}</span>
+                    <i data-lucide="x" width="14" class="text-gray-400"></i>
+                    <span class="font-bold text-yellow-600 bg-yellow-100 px-2 rounded">${i}</span>
+                    <span class="text-gray-400">=</span>
+                    <span class="font-bold text-green-600">${result}</span>
+                `;
+                
+                outputContainer.appendChild(row);
+                lucide.createIcons();
+
+                i++;
+            }, 600);
+        }
+
+    </script>
+</body>
+</html>
