@@ -1,5 +1,5 @@
 # python-loop-visualizer-wslisam
-Python Loop Visualizer  , For students to understand for loops and range().
+Teaching Tool : Python Loop Visualizer  , For students to understand for loops and range().
 
 Try : https://python-loop-visualizer-wslisam.pages.dev/
 
