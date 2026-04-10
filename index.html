@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Loop Visualizer (Step Input, 0 Blocked)</title>
+    <title>Python Loop Visualizer</title>
     
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         @keyframes popIn {
@@ -20,183 +16,307 @@
             0% { transform: translateX(-20px); opacity: 0; }
             100% { transform: translateX(0); opacity: 1; }
         }
-        .animate-pop {
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        .animate-slide {
-            animation: slideIn 0.4s ease-out forwards;
-        }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
         .code-font { font-family: 'Courier New', Courier, monospace; }
+        
+        /* Prevent horizontal scroll globally */
+        body { overflow-x: hidden; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 transition-colors duration-300">
 
-    <div class="w-full max-w-4xl mx-auto p-4 md:p-8">
+    <div class="w-full max-w-5xl mx-auto p-4 md:p-8 flex flex-col gap-6">
         
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Python Loop Visualizer 
-                <!-- <div class="text-gray-600 text-sm"> Created By Sam Li </div> -->
-        </h1>  
-            <p class="text-gray-600">
-                For understanding <code class="bg-gray-200 px-1 rounded text-sm">for</code> loops and 
-                <code class="bg-gray-200 px-1 rounded text-sm">range()</code>.
+        <header class="flex flex-wrap justify-between items-center bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-800" data-i18n="title">Python Loop Visualizer</h1>
+                <p class="text-slate-500 mt-1 text-sm md:text-base" data-i18n="subtitle">A tool for understanding <code class="bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font">for</code> loops and <code class="bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font">range()</code>.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <span class="text-slate-600 font-medium text-sm md:text-base" data-i18n="created_by">Created by Sam Li</span>
+                <button onclick="toggleLanguage()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 transition-colors rounded-lg text-sm font-bold text-slate-700 border border-slate-300 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span id="lang-indicator">EN / <span class="text-slate-400 font-normal">中</span></span>
+                </button>
+            </div>
+        </header>
+
+        <section class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-2xl">
+            <h2 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span data-i18n="learning_title">Learning Objectives</span>
+            </h2>
+            <p class="text-slate-700 text-sm md:text-base leading-relaxed" data-i18n="learning_desc">
+                By the end of this module, you will be able to visualize how the <code class="code-font bg-white px-1 rounded">range()</code> function generates sequences of numbers, and understand how <code class="code-font bg-white px-1 rounded">for</code> loops use these sequences to execute repetitive tasks.
             </p>
+        </section>
+
+        <div class="flex flex-wrap gap-2">
+            <button onclick="switchTab('range')" id="btn-range" class="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all bg-blue-600 text-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                <span data-i18n="tab_range">Range Explorer</span>
+            </button>
+            <button onclick="switchTab('table')" id="btn-table" class="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span data-i18n="tab_table">Multiplication Loop</span>
+            </button>
         </div>
 
-        <!-- Tab Navigation -->
-        <div class="flex flex-wrap gap-2 mb-6">
-            <button onclick="switchTab('range')" id="btn-range" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md">
-                <i data-lucide="layers" width="18"></i> Range Function
-            </button>
-            <button onclick="switchTab('table')" id="btn-table" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200">
-                <i data-lucide="calculator" width="18"></i> Multiplication Table
-            </button>
-        </div>
-
-        <!-- Main Content -->
-        <div class="bg-white rounded-2xl p-1 shadow-xl border border-gray-200">
-            <div class="p-6">
+        <main class="bg-white rounded-2xl p-1 shadow-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 md:p-6">
                 
-                <!-- SECTION 1: RANGE EXPLORER -->
                 <div id="view-range" class="space-y-6">
-                    <!-- Code Editor UI -->
-                    <div class="bg-slate-900 text-slate-200 p-6 rounded-xl code-font text-lg shadow-inner">
-                        <div class="flex flex-wrap items-center gap-2">
+                    <div class="bg-slate-900 text-slate-200 p-4 md:p-6 rounded-xl code-font text-base md:text-lg shadow-inner overflow-x-auto">
+                        <div class="flex items-center gap-2 min-w-max pb-2">
                             <span class="text-purple-400">for</span>
                             <span class="text-yellow-300">i</span>
                             <span class="text-purple-400">in</span>
                             <span class="text-blue-400">range</span>
                             <span>(</span>
                             
-                            <!-- Start Input -->
                             <div class="flex flex-col items-center relative group">
-                                <span class="text-xs text-gray-500 absolute -top-4">Start</span>
-                                <input type="number" id="range-start" value="0" class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
+                                <span class="text-[10px] md:text-xs text-slate-400 absolute -top-4" data-i18n="lbl_start">Start</span>
+                                <input type="number" id="range-start" value="0" class="w-14 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
                             </div>
-
+                            <span>,</span>
+                            
+                            <div class="flex flex-col items-center relative group">
+                                <span class="text-[10px] md:text-xs text-slate-400 absolute -top-4" data-i18n="lbl_stop">Stop</span>
+                                <input type="number" id="range-stop" value="5" class="w-14 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
+                            </div>
                             <span>,</span>
 
-                            <!-- Stop Input -->
                             <div class="flex flex-col items-center relative group">
-                                <span class="text-xs text-gray-500 absolute -top-4">Stop</span>
-                                <input type="number" id="range-stop" value="10" class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none">
+                                <span class="text-[10px] md:text-xs text-slate-400 absolute -top-4" data-i18n="lbl_step">Step</span>
+                                <input type="number" id="range-step" value="1" min="-10" max="10" class="w-14 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none" oninput="handleStepInput(this)">
                             </div>
-
-                            <span>,</span>
-
-                            <!-- Step Input (0 not allowed) -->
-                            <div class="flex flex-col items-center relative group">
-                                <span class="text-xs text-gray-500 absolute -top-4">Step</span>
-                                <input
-                                    type="number"
-                                    id="range-step"
-                                    value="1"
-                                    min="-100"
-                                    max="100"
-                                    class="w-12 bg-slate-800 border border-slate-600 rounded px-1 text-center text-white focus:border-blue-500 outline-none"
-                                    oninput="handleStepInput(this)"
-                                >
-                            </div>
-
                             <span>)</span>
                             <span>:</span>
                         </div>
-                        <div class="pl-8 mt-2 flex items-center gap-2">
+                        <div class="pl-8 mt-2 flex items-center gap-2 min-w-max">
                             <span class="text-blue-300">print</span>(<span class="text-yellow-300">i</span>)
-                            <span id="current-print-val" class="text-green-400 text-sm ml-4 hidden">
-                                # Currently printing: <span id="val-display"></span>
+                            <span id="current-print-val" class="text-emerald-400 text-sm ml-4 hidden">
+                                <span data-i18n="currently_printing"># Currently printing: </span><span id="val-display" class="font-bold"></span>
                             </span>
                         </div>
 
-                        <!-- Python RANGE REMINDER -->
-                        <div class="mt-4 text-xs md:text-sm text-slate-300 bg-slate-800/60 border border-slate-700 rounded-lg p-3 leading-relaxed">
-                            <p class="font-semibold mb-1">Python <code class="bg-slate-700 px-1 rounded">range()</code> reminder:</p>
-                            <ul class="list-disc list-inside space-y-1">
-                                <!-- <li><code>range(stop)</code> → counts from <code>0</code> to <code>stop - 1</code>, step defaults to <code>1</code>.</li> -->
-                                <li><code>range(start, stop)</code> → uses the default step of <code>1</code>. The step is <strong>optional</strong>.</li>
-                                <li><code>range(start, stop, step)</code> → lets you choose a custom step (positive or negative, but <strong>not 0</strong>).</li>
-                                <li>In real Python, <code>step = 0</code> raises: <code>ValueError: range() arg 3 must not be zero</code>.</li>
-                            </ul>
-                        </div>
-
-                        <!-- Inline warning for bad step -->
-                        <div id="range-warning" class="mt-3 text-xs md:text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 hidden">
-                            Step cannot be <code>0</code>. In Python this would raise
-                            <code>ValueError: range() arg 3 must not be zero</code>.  
-                            The step has been reset to <code>1</code>. You may also use values like <code>2</code> or input <code>-1</code> directly.
+                        <div id="range-warning" class="mt-4 text-xs md:text-sm text-red-300 bg-red-900/30 border border-red-800/50 rounded-lg p-3 hidden" data-i18n="warning_step">
+                            <strong>Warning:</strong> Step cannot be <code class="bg-red-900/50 px-1 rounded">0</code>. In Python, this raises a <code>ValueError</code>. The step has been safely reset to <code>1</code>.
                         </div>
                     </div>
 
-                    <!-- Controls -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <button onclick="runRangeSimulation()" id="btn-run-range" class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl transition-all">
-                            <i data-lucide="play" width="20"></i> Run Code
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="runRangeSimulation()" id="btn-run-range" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all">
+                            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <span id="text-run-range" data-i18n="btn_run_loop">Run Loop</span>
                         </button>
-                        <button onclick="resetRange()" class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-all">
-                            <i data-lucide="rotate-ccw" width="20"></i> Reset
+                        <button onclick="resetRange()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            <span data-i18n="btn_reset">Reset</span>
                         </button>
                     </div>
 
-                    <!-- Output Console -->
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm min-h-[160px]">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Output Console</h3>
-                        <div id="range-output" class="flex flex-wrap gap-3">
-                            <!-- Bubbles will appear here -->
-                        </div>
-                        <div class="mt-6 text-sm text-gray-500 border-t pt-4">
-                            <strong>Note:</strong>
-                            <span id="note-text">
-                                Notice how it starts at <strong id="note-start">0</strong>,
-                                jumps by <strong id="note-step">1</strong>, and stops
-                                <em>before</em> it reaches <strong id="note-stop">10</strong>.
-                            </span>
-                        </div>
+                    <div class="bg-slate-50 p-4 md:p-6 rounded-xl border border-slate-200 shadow-inner min-h-[160px]">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4" data-i18n="console_output">Console Output</h3>
+                        <div id="range-output" class="flex flex-wrap gap-3"></div>
+                        <div class="mt-6 text-sm text-slate-600 border-t border-slate-200 pt-4 hidden" id="live-explanation">
+                            </div>
                     </div>
                 </div>
 
-                <!-- SECTION 2: MULTIPLICATION TABLE (same as before) -->
                 <div id="view-table" class="hidden space-y-6">
-                    <div class="flex items-center justify-between bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <div class="flex items-center gap-4">
-                            <label class="font-bold text-gray-700">Multiplication Table for:</label>
-                            <input type="number" id="table-num" value="7" oninput="updateTableCode()" class="w-16 p-2 text-xl font-bold text-center border-2 border-blue-300 rounded-lg focus:border-blue-600 outline-none">
+                    <div class="flex flex-wrap items-center justify-between bg-indigo-50 p-4 rounded-xl border border-indigo-100 gap-4">
+                        <div class="flex items-center gap-3 w-full md:w-auto">
+                            <label class="font-bold text-indigo-900" data-i18n="target_number">Target Number:</label>
+                            <input type="number" id="table-num" value="7" oninput="updateTableCode()" class="w-20 p-2 text-xl font-bold text-center border-2 border-indigo-200 rounded-lg focus:border-indigo-500 outline-none">
                         </div>
-                        <button onclick="runTableSimulation()" id="btn-run-table" class="px-6 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all">
-                            Generate Table
+                        <button onclick="runTableSimulation()" id="btn-run-table" class="w-full md:w-auto px-6 py-2.5 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all">
+                            <span id="text-run-table" data-i18n="btn_generate">Generate</span>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Code View -->
-                        <div class="bg-slate-900 text-slate-200 p-6 rounded-xl code-font text-sm shadow-inner h-fit">
-                            <p class="text-gray-500 mb-2"># Python Code</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-slate-900 text-slate-200 p-5 rounded-xl code-font text-sm md:text-base shadow-inner h-fit overflow-x-auto">
+                            <p class="text-slate-400 mb-2" data-i18n="multiplication_logic"># Multiplication Logic</p>
                             <p>num = <span class="text-blue-400" id="code-num-display">7</span></p>
                             <p><span class="text-purple-400">for</span> <span class="text-yellow-300">i</span> <span class="text-purple-400">in</span> <span class="text-blue-400">range</span>(1, 11):</p>
-                            <p class="pl-4 text-gray-400"># Calculate result</p>
-                            <p class="pl-4">answer = num * <span class="text-yellow-300">i</span></p>
-                            <p class="pl-4"><span class="text-blue-300">print</span>(f"<span class="text-blue-400">{num}</span> x <span class="text-yellow-300">{i}</span> = <span class="text-green-400">{answer}</span>")</p>
+                            <p class="pl-4 text-slate-500" data-i18n="calc_result"># Calculate result</p>
+                            <p class="pl-4">ans = num * <span class="text-yellow-300">i</span></p>
+                            <p class="pl-4"><span class="text-blue-300">print</span>(f"<span class="text-blue-400">{num}</span> x <span class="text-yellow-300">{i}</span> = <span class="text-emerald-400">{ans}</span>")</p>
                         </div>
 
-                        <!-- Visual Output -->
-                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm min-h-[300px] flex flex-col gap-2">
-                            <h3 class="font-bold text-gray-700 border-b pb-2">Output</h3>
-                            <div id="table-output" class="flex flex-col gap-2">
-                                <!-- Rows will appear here -->
-                            </div>
+                        <div class="bg-slate-50 p-4 md:p-6 rounded-xl border border-slate-200 shadow-inner min-h-[300px] flex flex-col gap-2">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 pb-2" data-i18n="terminal">Terminal</h3>
+                            <div id="table-output" class="flex flex-col gap-2 mt-2"></div>
                         </div>
                     </div>
                 </div>
 
             </div>
-        </div>
+        </main>
 
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+            
+            <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+                <h3 class="font-bold text-red-800 flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span data-i18n="misc_title">Common Misconceptions</span>
+                </h3>
+                <ul class="text-sm text-slate-700 space-y-2">
+                    <li data-i18n="misc_1"><strong>"Stop is included."</strong> False! The <code class="code-font bg-white px-1">range()</code> function uses an exclusive upper bound. <code class="code-font bg-white px-1">range(0, 5)</code> stops at 4.</li>
+                    <li data-i18n="misc_2"><strong>"Step can be 0."</strong> False! If you don't step forward or backward, the loop would run forever. Python prevents this with an error.</li>
+                </ul>
+            </div>
+
+            <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                <h3 class="font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span data-i18n="key_title">Key Takeaways</span>
+                </h3>
+                <ul class="text-sm text-slate-700 space-y-2 list-disc list-inside">
+                    <li data-i18n="key_1"><code class="code-font bg-white px-1">range()</code> generates numbers sequentially.</li>
+                    <li data-i18n="key_2">Syntax: <code class="code-font bg-white px-1">range(start, stop, step)</code></li>
+                    <li data-i18n="key_3"><code class="code-font bg-white px-1">start</code> is inclusive (starts exactly here).</li>
+                    <li data-i18n="key_4"><code class="code-font bg-white px-1">stop</code> is exclusive (stops before this).</li>
+                </ul>
+            </div>
+
+            <div class="bg-purple-50 p-5 rounded-2xl border border-purple-100">
+                <h3 class="font-bold text-purple-800 flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path></svg>
+                    <span data-i18n="think_title">Think & Link</span>
+                </h3>
+                <p class="text-sm text-slate-700 mb-2" data-i18n="think_1">
+                    How would you code a countdown for a rocket launch from 10 down to 1?
+                </p>
+                <p class="text-sm text-slate-700 bg-white p-2 rounded border border-purple-200" data-i18n="think_2">
+                    <strong>Try it above:</strong> Set Start to <code class="code-font">10</code>, Stop to <code class="code-font">0</code>, and Step to <code class="code-font">-1</code>!
+                </p>
+            </div>
+
+        </div>
     </div>
 
-    <!-- LOGIC SCRIPT -->
     <script>
-        // Initialize Icons
-        lucide.createIcons();
+        // --- Internationalization (i18n) Logic ---
+        const translations = {
+            en: {
+                title: "Python Loop Visualizer",
+                subtitle: "A tool for understanding <code class=\"bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font\">for</code> loops and <code class=\"bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font\">range()</code>.",
+                created_by: "Created by Sam Li",
+                learning_title: "Learning Objectives",
+                learning_desc: "By the end of this module, you will be able to visualize how the <code class=\"code-font bg-white px-1 rounded\">range()</code> function generates sequences of numbers, and understand how <code class=\"code-font bg-white px-1 rounded\">for</code> loops use these sequences to execute repetitive tasks.",
+                tab_range: "Range Explorer",
+                tab_table: "Multiplication Loop",
+                lbl_start: "Start",
+                lbl_stop: "Stop",
+                lbl_step: "Step",
+                currently_printing: "# Currently printing: ",
+                warning_step: "<strong>Warning:</strong> Step cannot be <code class=\"bg-red-900/50 px-1 rounded\">0</code>. In Python, this raises a <code>ValueError</code>. The step has been safely reset to <code>1</code>.",
+                btn_run_loop: "Run Loop",
+                btn_running: "Running...",
+                btn_reset: "Reset",
+                console_output: "Console Output",
+                live_exp: "<strong>Live Explanation:</strong> The loop started at <strong class=\"text-blue-600\">{start}</strong>, stepped by <strong class=\"text-blue-600\">{step}</strong>, and strictly stopped <em>before</em> reaching <strong class=\"text-blue-600\">{stop}</strong>.",
+                target_number: "Target Number:",
+                btn_generate: "Generate",
+                btn_generating: "Generating...",
+                multiplication_logic: "# Multiplication Logic",
+                calc_result: "# Calculate result",
+                terminal: "Terminal",
+                misc_title: "Common Misconceptions",
+                misc_1: "<strong>\"Stop is included.\"</strong> False! The <code class=\"code-font bg-white px-1\">range()</code> function uses an exclusive upper bound. <code class=\"code-font bg-white px-1\">range(0, 5)</code> stops at 4.",
+                misc_2: "<strong>\"Step can be 0.\"</strong> False! If you don't step forward or backward, the loop would run forever. Python prevents this with an error.",
+                key_title: "Key Takeaways",
+                key_1: "<code class=\"code-font bg-white px-1\">range()</code> generates numbers sequentially.",
+                key_2: "Syntax: <code class=\"code-font bg-white px-1\">range(start, stop, step)</code>",
+                key_3: "<code class=\"code-font bg-white px-1\">start</code> is inclusive (starts exactly here).",
+                key_4: "<code class=\"code-font bg-white px-1\">stop</code> is exclusive (stops before this).",
+                think_title: "Think & Link",
+                think_1: "How would you code a countdown for a rocket launch from 10 down to 1?",
+                think_2: "<strong>Try it above:</strong> Set Start to <code class=\"code-font\">10</code>, Stop to <code class=\"code-font\">0</code>, and Step to <code class=\"code-font\">-1</code>!"
+            },
+            zh: {
+                title: "Python 迴圈視覺化工具",
+                subtitle: "幫助你理解 <code class=\"bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font\">for</code> 迴圈與 <code class=\"bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded code-font\">range()</code> 的實用工具。",
+                created_by: "由 Sam Li 製作",
+                learning_title: "學習目標",
+                learning_desc: "在本模組結束時，你將能夠視覺化 <code class=\"code-font bg-white px-1 rounded\">range()</code> 函數如何生成數字序列，並了解 <code class=\"code-font bg-white px-1 rounded\">for</code> 迴圈如何利用這些序列來執行重複性任務。",
+                tab_range: "Range 探索器",
+                tab_table: "乘法迴圈應用",
+                lbl_start: "起始",
+                lbl_stop: "結束",
+                lbl_step: "步長",
+                currently_printing: "# 目前印出：",
+                warning_step: "<strong>警告：</strong>步長 (Step) 不能為 <code class=\"bg-red-900/50 px-1 rounded\">0</code>。這在 Python 中會引發 <code>ValueError</code>。步長已安全重置為 <code>1</code>。",
+                btn_run_loop: "執行迴圈",
+                btn_running: "執行中...",
+                btn_reset: "重置",
+                console_output: "終端機輸出",
+                live_exp: "<strong>動態解析：</strong>迴圈從 <strong class=\"text-blue-600\">{start}</strong> 開始，每次跨步 <strong class=\"text-blue-600\">{step}</strong>，並且在到達 <strong class=\"text-blue-600\">{stop}</strong> <em>之前</em> 停止。",
+                target_number: "目標數字：",
+                btn_generate: "生成圖表",
+                btn_generating: "生成中...",
+                multiplication_logic: "# 乘法邏輯",
+                calc_result: "# 計算結果",
+                terminal: "終端機",
+                misc_title: "常見迷思",
+                misc_1: "<strong>「包含結束值 (Stop)。」</strong> 錯！<code class=\"code-font bg-white px-1\">range()</code> 函數不包含上限值。<code class=\"code-font bg-white px-1\">range(0, 5)</code> 只會執行到 4。",
+                misc_2: "<strong>「步長 (Step) 可以是 0。」</strong> 錯！如果你不向前或向後邁步，迴圈將會無止盡執行。Python 會透過報錯來阻止這種情況。",
+                key_title: "課堂總結",
+                key_1: "<code class=\"code-font bg-white px-1\">range()</code> 會按順序生成數字。",
+                key_2: "語法：<code class=\"code-font bg-white px-1\">range(start, stop, step)</code>",
+                key_3: "<code class=\"code-font bg-white px-1\">start</code> 是包含的 (精準從此數開始)。",
+                key_4: "<code class=\"code-font bg-white px-1\">stop</code> 是不包含的 (在此數之前停止)。",
+                think_title: "思考與連結",
+                think_1: "你會如何撰寫一個從 10 倒數到 1 的火箭發射程式？",
+                think_2: "<strong>在上方試試看：</strong>將 Start 設為 <code class=\"code-font\">10</code>，Stop 設為 <code class=\"code-font\">0</code>，Step 設為 <code class=\"code-font\">-1</code>！"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            
+            // Update button visual
+            const langIndicator = document.getElementById('lang-indicator');
+            if (currentLang === 'en') {
+                langIndicator.innerHTML = 'EN / <span class="text-slate-400 font-normal">中</span>';
+            } else {
+                langIndicator.innerHTML = '<span class="text-slate-400 font-normal">EN</span> / 中';
+            }
+
+            renderLanguage();
+        }
+
+        function renderLanguage() {
+            // Translate static elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerHTML = translations[currentLang][key];
+                }
+            });
+
+            // Handle dynamic button states if a simulation is running
+            const btnRunRange = document.getElementById('btn-run-range');
+            if (btnRunRange.disabled) {
+                document.getElementById('text-run-range').innerHTML = translations[currentLang].btn_running;
+            }
+
+            const btnRunTable = document.getElementById('btn-run-table');
+            if (btnRunTable.disabled) {
+                document.getElementById('text-run-table').innerHTML = translations[currentLang].btn_generating;
+            }
+
+            // Translate Live Explanation if visible
+            const liveExp = document.getElementById('live-explanation');
+            if (!liveExp.classList.contains('hidden')) {
+                updateLiveExplanation();
+            }
+        }
 
         // --- Tab Switching Logic ---
         function switchTab(tab) {
@@ -205,139 +325,105 @@
             const btnRange = document.getElementById('btn-range');
             const btnTable = document.getElementById('btn-table');
 
+            const activeClass = "flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all bg-blue-600 text-white shadow-md";
+            const inactiveClass = "flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200";
+
             if (tab === 'range') {
                 rangeView.classList.remove('hidden');
                 tableView.classList.add('hidden');
-                
-                btnRange.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md";
-                btnTable.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200";
+                btnRange.className = activeClass;
+                btnTable.className = inactiveClass;
             } else {
                 rangeView.classList.add('hidden');
                 tableView.classList.remove('hidden');
-
-                btnTable.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-blue-600 text-white shadow-md";
-                btnRange.className = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-white text-gray-600 hover:bg-gray-50 border border-gray-200";
+                btnTable.className = activeClass;
+                btnRange.className = inactiveClass;
             }
         }
 
-        // --- Step Input Handler (blocks 0) ---
+        // --- Step Input Handler ---
         function handleStepInput(inputEl) {
             const warningBox = document.getElementById('range-warning');
             let val = parseInt(inputEl.value);
 
             if (isNaN(val)) {
-                // Let it be empty, hide warning
-                if (warningBox) warningBox.classList.add('hidden');
+                warningBox.classList.add('hidden');
                 return;
             }
 
             if (val === 0) {
-                // auto-correct to 1 and show inline explanation
-                inputEl.value = 1;
-                if (warningBox) warningBox.classList.remove('hidden');
+                inputEl.value = 1; 
+                warningBox.classList.remove('hidden');
             } else {
-                if (warningBox) warningBox.classList.add('hidden');
+                warningBox.classList.add('hidden');
             }
         }
 
         // --- Range Explorer Logic ---
         let rangeInterval;
+        let activeStart, activeStop, activeStep;
+
+        function updateLiveExplanation() {
+            const liveExp = document.getElementById('live-explanation');
+            let expTpl = translations[currentLang].live_exp;
+            expTpl = expTpl.replace('{start}', activeStart)
+                           .replace('{step}', Math.abs(activeStep))
+                           .replace('{stop}', activeStop);
+            liveExp.innerHTML = expTpl;
+        }
 
         function runRangeSimulation() {
-            const start = parseInt(document.getElementById('range-start').value) || 0;
-            const stop = parseInt(document.getElementById('range-stop').value) || 0;
+            activeStart = parseInt(document.getElementById('range-start').value) || 0;
+            activeStop = parseInt(document.getElementById('range-stop').value) || 0;
             const rawStep = document.getElementById('range-step').value;
-            let step = parseInt(rawStep);
+            activeStep = parseInt(rawStep);
 
             const outputContainer = document.getElementById('range-output');
             const btn = document.getElementById('btn-run-range');
+            const btnText = document.getElementById('text-run-range');
+            const playIcon = document.getElementById('icon-play');
             const currentValDisplay = document.getElementById('current-print-val');
             const valSpan = document.getElementById('val-display');
-            const noteStart = document.getElementById('note-start');
-            const noteStop = document.getElementById('note-stop');
-            const noteStep = document.getElementById('note-step');
-            const noteText = document.getElementById('note-text');
+            const liveExp = document.getElementById('live-explanation');
             const warningBox = document.getElementById('range-warning');
 
-            // If empty or NaN, fall back to default step = 1 (mimic optional step)
-            if (rawStep === "" || isNaN(step)) {
-                step = 1;
+            if (rawStep === "" || isNaN(activeStep) || activeStep === 0) {
+                activeStep = 1;
                 document.getElementById('range-step').value = 1;
+                if(rawStep === "0") warningBox.classList.remove('hidden');
             }
 
-            // Block step = 0 just in case
-            if (step === 0) {
-                step = 1;
-                document.getElementById('range-step').value = 1;
-                if (warningBox) warningBox.classList.remove('hidden');
-            }
-
-            // Reset UI
+            // Reset UI State
             clearInterval(rangeInterval);
             outputContainer.innerHTML = '';
             btn.disabled = true;
-            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-            btn.innerText = "Running...";
+            btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-white bg-slate-400 cursor-not-allowed transition-all";
+            btnText.innerHTML = translations[currentLang].btn_running;
+            if(playIcon) playIcon.style.display = 'none';
             
-            // Update Teacher Note Values
-            noteStart.innerText = start;
-            noteStop.innerText = stop;
-            noteStep.innerText = step;
+            updateLiveExplanation();
+            liveExp.classList.remove('hidden');
 
-            if (step > 0) {
-                noteText.innerHTML = `
-                    Notice how it starts at <strong id="note-start">${start}</strong>,
-                    jumps up by <strong id="note-step">${step}</strong>, and stops
-                    <em>before</em> it reaches <strong id="note-stop">${stop}</strong>.
-                `;
-            } else {
-                noteText.innerHTML = `
-                    Notice how it starts at <strong id="note-start">${start}</strong>,
-                    goes down by <strong id="note-step">${step}</strong>, and stops
-                    <em>before</em> it goes past <strong id="note-stop">${stop}</strong>.
-                `;
-            }
-
-            // Generate Sequence (Python-like behavior)
             let sequence = [];
-            let current = start;
+            let current = activeStart;
 
-            if (step > 0) {
-                while (current < stop) {
-                    sequence.push(current);
-                    current += step;
-                }
+            if (activeStep > 0) {
+                while (current < activeStop) { sequence.push(current); current += activeStep; }
             } else {
-                while (current > stop) {
-                    sequence.push(current);
-                    current += step;
-                }
+                while (current > activeStop) { sequence.push(current); current += activeStep; }
             }
 
-            // Animation Loop
             let i = 0;
             currentValDisplay.classList.remove('hidden');
 
             if (sequence.length === 0) {
-                currentValDisplay.classList.add('hidden');
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
-                lucide.createIcons();
+                finishRangeSimulation();
                 return;
             }
 
             rangeInterval = setInterval(() => {
                 if (i >= sequence.length) {
-                    clearInterval(rangeInterval);
-                    btn.disabled = false;
-                    btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                    btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
-                    lucide.createIcons();
-                    currentValDisplay.classList.add('hidden');
+                    finishRangeSimulation();
                     return;
                 }
 
@@ -345,28 +431,35 @@
                 valSpan.innerText = num;
 
                 const bubble = document.createElement('div');
-                bubble.className = "w-12 h-12 flex items-center justify-center bg-blue-100 text-blue-800 font-bold rounded-full border-2 border-blue-200 shadow-sm animate-pop";
+                bubble.className = "w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-blue-100 text-blue-800 font-bold rounded-lg border-2 border-blue-200 shadow-sm animate-pop text-sm md:text-base code-font";
                 bubble.innerText = num;
                 outputContainer.appendChild(bubble);
 
                 i++;
-            }, 800);
+            }, 600);
+        }
+
+        function finishRangeSimulation() {
+            clearInterval(rangeInterval);
+            const btn = document.getElementById('btn-run-range');
+            const btnText = document.getElementById('text-run-range');
+            const playIcon = document.getElementById('icon-play');
+            
+            btn.disabled = false;
+            btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all";
+            btnText.innerHTML = translations[currentLang].btn_run_loop;
+            if(playIcon) playIcon.style.display = 'block';
+            
+            document.getElementById('current-print-val').classList.add('hidden');
         }
 
         function resetRange() {
             clearInterval(rangeInterval);
             document.getElementById('range-output').innerHTML = '';
             document.getElementById('current-print-val').classList.add('hidden');
-            
-            const btn = document.getElementById('btn-run-range');
-            btn.disabled = false;
-            btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-            btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            btn.innerHTML = '<i data-lucide="play" width="20"></i> Run Code';
-            lucide.createIcons();
-
-            const warningBox = document.getElementById('range-warning');
-            if (warningBox) warningBox.classList.add('hidden');
+            document.getElementById('live-explanation').classList.add('hidden');
+            document.getElementById('range-warning').classList.add('hidden');
+            finishRangeSimulation();
         }
 
         // --- Multiplication Table Logic ---
@@ -374,20 +467,20 @@
 
         function updateTableCode() {
             const num = document.getElementById('table-num').value;
-            document.getElementById('code-num-display').innerText = num;
+            document.getElementById('code-num-display').innerText = num || 0;
         }
 
         function runTableSimulation() {
-            const baseNum = parseInt(document.getElementById('table-num').value) || 7;
+            const baseNum = parseInt(document.getElementById('table-num').value) || 0;
             const outputContainer = document.getElementById('table-output');
             const btn = document.getElementById('btn-run-table');
+            const btnText = document.getElementById('text-run-table');
 
             clearInterval(tableInterval);
             outputContainer.innerHTML = '';
             btn.disabled = true;
-            btn.classList.add('bg-gray-400');
-            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            btn.innerText = "Generating...";
+            btn.className = "w-full md:w-auto px-6 py-2.5 rounded-lg font-bold text-white bg-slate-400 cursor-not-allowed transition-all";
+            btnText.innerHTML = translations[currentLang].btn_generating;
 
             let i = 1;
 
@@ -395,31 +488,26 @@
                 if (i > 10) {
                     clearInterval(tableInterval);
                     btn.disabled = false;
-                    btn.classList.remove('bg-gray-400');
-                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                    btn.innerText = "Generate Table";
+                    btn.className = "w-full md:w-auto px-6 py-2.5 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all";
+                    btnText.innerHTML = translations[currentLang].btn_generate;
                     return;
                 }
 
                 const result = baseNum * i;
-                
                 const row = document.createElement('div');
-                row.className = "flex items-center gap-3 text-lg font-mono p-2 bg-gray-50 rounded animate-slide";
+                row.className = "flex items-center gap-3 text-sm md:text-base font-mono p-2 bg-white rounded border border-slate-100 animate-slide shadow-sm";
                 row.innerHTML = `
-                    <span class="font-bold text-blue-600">${baseNum}</span>
-                    <i data-lucide="x" width="14" class="text-gray-400"></i>
-                    <span class="font-bold text-yellow-600 bg-yellow-100 px-2 rounded">${i}</span>
-                    <span class="text-gray-400">=</span>
-                    <span class="font-bold text-green-600">${result}</span>
+                    <span class="font-bold text-indigo-600 w-6 text-right">${baseNum}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span class="font-bold text-yellow-600 bg-yellow-50 px-2 rounded w-8 text-center border border-yellow-100">${i}</span>
+                    <span class="text-slate-400">=</span>
+                    <span class="font-bold text-emerald-600 w-10">${result}</span>
                 `;
                 
                 outputContainer.appendChild(row);
-                lucide.createIcons();
-
                 i++;
-            }, 600);
+            }, 400);
         }
-
     </script>
 </body>
 </html>
